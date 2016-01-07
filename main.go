@@ -3,12 +3,12 @@ package main
 import (
     "golang.org/x/net/websocket"
     "fmt"
-    // "io"
-    // "os"
     "log"
     "net/http"
     "strconv"
     "time"
+    //"encoding/json"
+    "github.com/bitly/go-simplejson" // for json get
 )
 
 type User struct {
@@ -18,9 +18,23 @@ type User struct {
 
 var Users []User
 
+// type Receive struct{
+//     content   string    `json:"content"`
+//     uname  string   `json:"uname"`
+// }
+
+type Reply struct{
+    //id string
+    uname string
+    content string
+    time int
+}
+
 func generateId() string {
 	return strconv.FormatInt(time.Now().UnixNano(), 10)
 }
+
+
 
 func ChatWith(ws *websocket.Conn) {
     var err error
@@ -31,24 +45,30 @@ func ChatWith(ws *websocket.Conn) {
     fmt.Println("connect current user num",len(Users))
 
     for {
-        var reply string
+        var receiveMsg string
 
-        if err = websocket.Message.Receive(ws, &reply); err != nil {
+        if err = websocket.Message.Receive(ws, &receiveMsg); err != nil {
             fmt.Println("Can't receive,user ",uid," lost connection")
             Users = removeUser(uid)
             break
         }
-
-        fmt.Println("Received back from client: " + reply)
+        receive, err := simplejson.NewJson([]byte(receiveMsg))
+        if err != nil {
+            panic(err.Error())
+        }
+        var receiveNodes = make(map[string]interface{})
+        receiveNodes, _ = receive.Map()
+        fmt.Println("Received back from client: " , receiveNodes)
 
         //msg := "Received from " + ws.Request().Host + "  " + reply
         // msg := "welcome from websocket"
         // fmt.Println("Sending to client: " + msg)
+        reply := Reply{uname:receiveNodes["uname"].(string),content:receiveNodes["content"].(string),time:0}
         for _,user := range Users{
-          if user.id == uid{
-              continue
-          }
-          if err = websocket.Message.Send(user.con, reply); err != nil {
+          // if user.id == uid{
+          //     continue
+          // }
+          if err = websocket.JSON.Send(user.con, reply); err != nil {
               fmt.Println("Can't send user ",user.id," lost connection")
               Users = removeUser(user.id)
               break

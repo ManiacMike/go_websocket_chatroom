@@ -25,7 +25,7 @@
     // helper function: log message to screen
     function log(msg)
     {
-      document.getElementById('log').textContent += msg + '<br><br>';
+      $("#log").html($("#log").html()+msg+"<br><br>")
     }
     var uname = getCookie("uname")?getCookie("uname"):"匿名"
 	   $("#uname").val(uname)

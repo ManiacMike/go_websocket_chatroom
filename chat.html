@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<title>聊天室</title>
+<script src="https://code.jquery.com/jquery-1.11.3.js"></script>
+<link href="http://cdn.bootcss.com/bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<style>
+  #log{height:400px;width:500px;border:1px solid rgb(55,55,55);border-radius:5px;padding:5px;overflow:auto}
+</style>
+<div class="container">
+<h1>golang websocket聊天室</h1>
+<div id="log">
+</div>
+<br>
+<div>
+名称：<input type="text" id="uname" value="匿名"> <a href="javascript:void(0)" class="btn" id="name_update" >更新</a>
+<br>
+内容：<textarea id="textarea_content"></textarea>
+<a href="javascript:void(0)" id="send" class="btn" >发送</a>
+</div>
+</div>
+<script>
+  $(function(){
+    // helper function: log message to screen
+    function log(msg)
+    {
+      document.getElementById('log').textContent += msg + '\r\n\r\n';
+    }
+    var uname = getCookie("uname")?getCookie("uname"):"匿名"
+	$("#uname").val(uname)
+
+    function setCookie(name,value)
+    {
+      var Days = 1;
+      var exp = new Date();
+      exp.setTime(exp.getTime() + Days*24*60*60*1000);
+      document.cookie = name + "="+ escape (value) + ";expires=" + exp.toGMTString();
+    }
+    function getCookie(name)
+    {
+      var arr,reg=new RegExp("(^| )"+name+"=([^;]*)(;|$)");
+      if(arr=document.cookie.match(reg))
+      return unescape(arr[2]);
+      else
+      return null;
+    }
+
+    $("#name_update").click(function(){
+      setCookie("uname",$("#uname").val())
+      uname = $("#uname").val();
+    });
+    setup websocket with callbacks
+    var ws = new WebSocket('ws://127.0.0.1:8001/');
+    ws.onopen = function() {
+      log('连接成功');
+    };
+    ws.onclose = function() {
+      log('失去连接');
+     	 $('#log').scrollTop( $('#log')[0].scrollHeight );
+    };
+    ws.onerror = function(e) {
+      log("error from connect " + e);
+    	 $('#log').scrollTop( $('#log')[0].scrollHeight );
+    }
+    ws.onmessage = function(event) {
+      log(event.data);
+     	 $('#log').scrollTop( $('#log')[0].scrollHeight );
+    };
+    $("#send").click(function(){
+      //log(msg);
+      var msg = {"content":$("#textarea_content").val(""),"uname":uname}
+      ws.send(msg.toJSONString());
+
+     	$('#log').scrollTop( $('#log')[0].scrollHeight );
+    });
+  });
+</script><body></html>

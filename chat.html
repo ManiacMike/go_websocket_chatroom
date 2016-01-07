@@ -25,10 +25,10 @@
     // helper function: log message to screen
     function log(msg)
     {
-      document.getElementById('log').textContent += msg + '\r\n\r\n';
+      document.getElementById('log').textContent += msg + '<br><br>';
     }
     var uname = getCookie("uname")?getCookie("uname"):"匿名"
-	$("#uname").val(uname)
+	   $("#uname").val(uname)
 
     function setCookie(name,value)
     {
@@ -50,7 +50,7 @@
       setCookie("uname",$("#uname").val())
       uname = $("#uname").val();
     });
-    setup websocket with callbacks
+    //setup websocket with callbacks
     var ws = new WebSocket('ws://127.0.0.1:8001/');
     ws.onopen = function() {
       log('连接成功');
@@ -69,9 +69,9 @@
     };
     $("#send").click(function(){
       //log(msg);
-      var msg = {"content":$("#textarea_content").val(""),"uname":uname}
-      ws.send(msg.toJSONString());
-
+      var msg = '{"content":"'+$("#textarea_content").val()+'","uname":"'+uname+'"}'
+      console.log(msg)
+      ws.send(msg);
      	$('#log').scrollTop( $('#log')[0].scrollHeight );
     });
   });

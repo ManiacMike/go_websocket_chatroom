@@ -28,7 +28,7 @@
       $("#log").html($("#log").html()+msg+"<br><br>")
     }
     var uname = getCookie("uname")?getCookie("uname"):"匿名"
-	   $("#uname").val(uname)
+	  $("#uname").val(uname)
 
     function setCookie(name,value)
     {
@@ -41,9 +41,9 @@
     {
       var arr,reg=new RegExp("(^| )"+name+"=([^;]*)(;|$)");
       if(arr=document.cookie.match(reg))
-      return unescape(arr[2]);
+        return unescape(arr[2]);
       else
-      return null;
+        return null;
     }
 
     $("#name_update").click(function(){
@@ -65,11 +65,15 @@
     }
     ws.onmessage = function(event) {
       var msg = JSON.parse(event.data);
-      var t = msg.time
-      var d = new Date(t*1000);
-      var time = d.getHours()+":"+(d.getMinutes()<10?("0"+d.getMinutes()):d.getMinutes())+":"+(d.getSeconds()<10?("0"+d.getSeconds()):d.getSeconds());
-      log("<span style='color:rgb(200,200,200)'>"+time + "</span> <span style='color:rgb(200,200,200);font-weight:bold'>" + msg.uname + "</span> <br> " + msg.content);
-     	 $('#log').scrollTop( $('#log')[0].scrollHeight );
+      if(msg.type == "session"){
+        setCookie("uid",msg.uid)
+      }else{
+        var t = msg.time
+        var d = new Date(t*1000);
+        var time = d.getHours()+":"+(d.getMinutes()<10?("0"+d.getMinutes()):d.getMinutes())+":"+(d.getSeconds()<10?("0"+d.getSeconds()):d.getSeconds());
+        log("<span style='color:rgb(200,200,200)'>"+time + "</span> <span style='color:rgb(200,200,200);font-weight:bold'>" + msg.uname + "</span> <br> " + msg.content);
+       	 $('#log').scrollTop( $('#log')[0].scrollHeight );
+      }
     };
     $("#send").click(function(){
       //log(msg);

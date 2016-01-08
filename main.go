@@ -7,7 +7,7 @@ import (
     "net/http"
     "strconv"
     "time"
-    //"encoding/json"
+    "encoding/json"
     "github.com/bitly/go-simplejson" // for json get
 )
 
@@ -25,9 +25,9 @@ var Users []User
 
 type Reply struct{
     //id string
-    uname string
-    content string
-    time int
+    Uname string  `json:"uname"`
+    Content string  `json:"content"`
+    Time int64  `json:"time"`
 }
 
 func generateId() string {
@@ -61,14 +61,20 @@ func ChatWith(ws *websocket.Conn) {
         fmt.Println("Received back from client: " , receiveNodes)
 
         //msg := "Received from " + ws.Request().Host + "  " + reply
-        // msg := "welcome from websocket"
-        // fmt.Println("Sending to client: " + msg)
-        reply := Reply{uname:receiveNodes["uname"].(string),content:receiveNodes["content"].(string),time:0}
+        reply := Reply{Uname:receiveNodes["uname"].(string),Content:receiveNodes["content"].(string),Time:time.Now().Unix()}
+        //fmt.Println(reply)
+        replyBody, err := json.Marshal(reply)
+        if err != nil {
+            panic(err.Error())
+        }
+        //fmt.Println(replyBody)
+        replyBodyStr := string(replyBody);
+        //fmt.Println(replyBodyStr)
         for _,user := range Users{
           // if user.id == uid{
           //     continue
           // }
-          if err = websocket.JSON.Send(user.con, reply); err != nil {
+          if err = websocket.Message.Send(user.con, replyBodyStr); err != nil {
               fmt.Println("Can't send user ",user.id," lost connection")
               Users = removeUser(user.id)
               break

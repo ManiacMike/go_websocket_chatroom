@@ -64,14 +64,18 @@
     	 $('#log').scrollTop( $('#log')[0].scrollHeight );
     }
     ws.onmessage = function(event) {
-      log(event.data);
+      var msg = JSON.parse(event.data);
+      var t = msg.time
+      var d = new Date(t*1000);
+      var time = d.getHours()+":"+(d.getMinutes()<10?("0"+d.getMinutes()):d.getMinutes())+":"+(d.getSeconds()<10?("0"+d.getSeconds()):d.getSeconds());
+      log("<span style='color:rgb(200,200,200)'>"+time + "</span> <span style='color:rgb(200,200,200);font-weight:bold'>" + msg.uname + "</span> <br> " + msg.content);
      	 $('#log').scrollTop( $('#log')[0].scrollHeight );
     };
     $("#send").click(function(){
       //log(msg);
       var msg = '{"content":"'+$("#textarea_content").val()+'","uname":"'+uname+'"}'
-      console.log(msg)
       ws.send(msg);
+      $("#textarea_content").val("");
      	$('#log').scrollTop( $('#log')[0].scrollHeight );
     });
   });

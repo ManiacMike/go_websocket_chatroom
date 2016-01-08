@@ -7,9 +7,12 @@
 <body>
 <style>
   #log{height:400px;width:500px;border:1px solid rgb(55,55,55);border-radius:5px;padding:5px;overflow:auto}
+  p{color:rgb(100,100,100)}
+  #user_count{color:black;font-weight:bold}
 </style>
 <div class="container">
 <h1>golang websocket聊天室</h1>
+<p>当前在线 <span id="user_count">0</span> 人</p>
 <div id="log">
 </div>
 <br>
@@ -67,6 +70,8 @@
       var msg = JSON.parse(event.data);
       if(msg.type == "session"){
         setCookie("uid",msg.uid)
+      }else if(msg.type== "user_count"){
+        $("#user_count").html(msg.user_count)
       }else{
         var t = msg.time
         var d = new Date(t*1000);

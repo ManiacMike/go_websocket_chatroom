@@ -30,6 +30,10 @@ type UidCookieReply struct{
     Uid string  `json:"uid"`
 }
 
+type UserCountChangeReply struct{
+    Type string `json:"type"`
+    UserCount int `json:"user_count"`
+}
 
 func ChatServer(ws *websocket.Conn) {
     var err error
@@ -51,13 +55,14 @@ func ChatServer(ws *websocket.Conn) {
         uid = NewUser(ws) //cookie中的uid不存在
       }
     }
-    
+    PushUserCount()
+
     for {
         var receiveMsg string
 
         if err = websocket.Message.Receive(ws, &receiveMsg); err != nil {
             fmt.Println("Can't receive,user ",uid," lost connection")
-            Users = RemoveUser(uid)
+            RemoveUser(uid)
             break
         }
 
@@ -85,17 +90,26 @@ func NewUser(ws *websocket.Conn) string{
   replyBodyStr := string(replyBody)
   if err := websocket.Message.Send(ws, replyBodyStr); err != nil {
       fmt.Println("Can't send user ",uid," lost connection")
-      Users = RemoveUser(uid)
+      RemoveUser(uid)
   }
   return uid
 }
 
-//TODO 在线人数推送
+func PushUserCount(){
+  userCount := UserCountChangeReply{"user_count",len(Users)}
+  replyBody, err := json.Marshal(userCount)
+  if err != nil {
+      panic(err.Error())
+  }
+  replyBodyStr := string(replyBody)
+  Broadcast(replyBodyStr)
+}
+
 func Broadcast(replyBodyStr string) error{
   for _,user := range Users{
     if err := websocket.Message.Send(user.con, replyBodyStr); err != nil {
         fmt.Println("Can't send user ",user.uid," lost connection")
-        Users = RemoveUser(user.uid)
+        RemoveUser(user.uid)
         break
     }
   }
@@ -117,13 +131,12 @@ func GenerateId() string {
 	return strconv.FormatInt(time.Now().UnixNano(), 10)
 }
 
-func RemoveUser(uid string) []User{
+func RemoveUser(uid string){
   flag,find := UserExist(uid)
 	if flag == true{
 		newUsers := append(Users[:find],Users[find+1:]...)
-		return newUsers
-	}else{
-		return Users
+    Users = newUsers
+    PushUserCount()
 	}
 }
 

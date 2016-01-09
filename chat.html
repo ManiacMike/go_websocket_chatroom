@@ -9,6 +9,8 @@
   #log{height:400px;width:500px;border:1px solid rgb(55,55,55);border-radius:5px;padding:5px;overflow:auto}
   p{color:rgb(100,100,100)}
   #user_count{color:black;font-weight:bold}
+  textarea{width:500px;}
+  #uname{margin-top: 10px;}
 </style>
 <div class="container">
 <h1>golang websocket聊天室</h1>
@@ -17,9 +19,9 @@
 </div>
 <br>
 <div>
-名称：<input type="text" id="uname" value="匿名"> <a href="javascript:void(0)" class="btn" id="name_update" >更新</a>
+<div >名称：<input type="text" id="uname" value="匿名"> <a href="javascript:void(0)" class="btn" id="name_update" >更新</a></div>
 <br>
-内容：<textarea id="textarea_content"></textarea>
+内容：<textarea id="textarea_content" class="textarea"></textarea>
 <a href="javascript:void(0)" id="send" class="btn" >发送</a>
 </div>
 </div>
@@ -27,6 +29,7 @@
   $(function(){
     // helper function: log message to screen
     var LINE_SEPARATOR = "#LINE_SEPARATOR#"
+    var status = "offline"
     function log(msg)
     {
       $("#log").html($("#log").html()+msg+"<br><br>")
@@ -57,15 +60,18 @@
     //setup websocket with callbacks
     var ws = new WebSocket('ws://127.0.0.1:8001/');
     ws.onopen = function() {
-      log('连接成功');
+      log("<span style='color:green'>连接成功</span>");
+      status = "online"
     };
     ws.onclose = function() {
-      log('失去连接');
+      log("<span style='color:red'>失去连接</span>");
      	 $('#log').scrollTop( $('#log')[0].scrollHeight );
+       status = "offline"
     };
     ws.onerror = function(e) {
       log("error from connect " + e);
     	 $('#log').scrollTop( $('#log')[0].scrollHeight );
+       status = "offline"
     }
     ws.onmessage = function(event) {
       var msg = JSON.parse(event.data);
@@ -84,11 +90,15 @@
       }
     };
     function sendMsg(){
-      //log(msg);
-      var msg = '{"content":"'+$("#textarea_content").val()+'","uname":"'+uname+'"}'
-      ws.send(msg);
-      $("#textarea_content").val("");
-      $('#log').scrollTop( $('#log')[0].scrollHeight );
+      if(status == "online"){
+        //log(msg);
+        var msg = '{"content":"'+$("#textarea_content").val()+'","uname":"'+uname+'"}'
+        ws.send(msg);
+        $("#textarea_content").val("");
+        $('#log').scrollTop( $('#log')[0].scrollHeight );
+      }else{
+        alert("连接失败")
+      }
     }
     $("#send").click(function(){
       sendMsg()
@@ -97,6 +107,7 @@
       var ev = document.all ? window.event : e;
       if(ev.ctrlKey &&  ev.which==13) {
           sendMsg()
+          return false
       }
     }
   });

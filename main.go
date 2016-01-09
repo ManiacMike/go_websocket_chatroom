@@ -19,7 +19,8 @@ type User struct {
 	con *websocket.Conn
 }
 
-var Users []User //在线用户列表
+type UserList []User
+var CurrentUsers *UserList //在线用户列表
 
 type MessageReply struct{
     Type string `json:"type"`
@@ -41,21 +42,21 @@ type UserCountChangeReply struct{
 func ChatServer(ws *websocket.Conn) {
     var err error
     var uid string
+    if nil == CurrentUsers{
+      CurrentUsers = new (UserList)
+    }
     if uidCookie,err := ws.Request().Cookie("uid"); err != nil{
       fmt.Println("visitor is unknown")
-      uid = NewUser(ws)
+      uid = CurrentUsers.New(ws)
     }else{
       uid := uidCookie.Value
       fmt.Println("visitor ",uid)
-      userExist,index := UserExist(uid)
+      userExist,index := CurrentUsers.Exist(uid)
       if userExist == true {
-        fmt.Println("visitor exist")
-        curUser := Users[index]
-        curUser.con.Close()
-        Users[index].con = ws
+        CurrentUsers.ChangeConn(index,ws)
       }else{
         fmt.Println("visitor uid is outdate")
-        uid = NewUser(ws) //cookie中的uid不存在
+        uid = CurrentUsers.New(ws) //cookie中的uid不存在
       }
     }
     PushUserCount()
@@ -65,11 +66,12 @@ func ChatServer(ws *websocket.Conn) {
 
         if err = websocket.Message.Receive(ws, &receiveMsg); err != nil {
             fmt.Println("Can't receive,user ",uid," lost connection")
-            RemoveUser(uid)
+            CurrentUsers.Remove(uid)
             break
         }
 
         receiveNodes := JsonStrToStruct(receiveMsg)
+        fmt.Println("Received back from client: " , receiveNodes)
         reply := MessageReply{Type:"message",Uname:receiveNodes["uname"].(string),Content:receiveNodes["content"].(string),Time:time.Now().Unix()}
         replyBody, err := json.Marshal(reply)
         if err != nil {
@@ -80,11 +82,11 @@ func ChatServer(ws *websocket.Conn) {
     }
 }
 
-func NewUser(ws *websocket.Conn) string{
+func (users *UserList) New(ws *websocket.Conn) string{
   uid := GenerateId()
-  newUser := User{uid,ws}
-  Users = append(Users,newUser)
-  fmt.Println("connect current user num",len(Users))
+  (*users) = append(*users,User{uid,ws})
+  fmt.Println(*users)
+  fmt.Println("New user connect current user num",len(*users))
   reply := UidCookieReply{Type:"session",Uid:uid}
   replyBody, err := json.Marshal(reply)
   if err != nil {
@@ -93,13 +95,13 @@ func NewUser(ws *websocket.Conn) string{
   replyBodyStr := string(replyBody)
   if err := websocket.Message.Send(ws, replyBodyStr); err != nil {
       fmt.Println("Can't send user ",uid," lost connection")
-      RemoveUser(uid)
+      users.Remove(uid)
   }
   return uid
 }
 
 func PushUserCount(){
-  userCount := UserCountChangeReply{"user_count",len(Users)}
+  userCount := UserCountChangeReply{"user_count",len(*CurrentUsers)}
   replyBody, err := json.Marshal(userCount)
   if err != nil {
       panic(err.Error())
@@ -109,10 +111,11 @@ func PushUserCount(){
 }
 
 func Broadcast(replyBodyStr string) error{
-  for _,user := range Users{
+  fmt.Println("current user",len(*CurrentUsers))
+  for _,user := range *CurrentUsers{
     if err := websocket.Message.Send(user.con, replyBodyStr); err != nil {
         fmt.Println("Can't send user ",user.uid," lost connection")
-        RemoveUser(user.uid)
+        CurrentUsers.Remove(user.uid)
         break
     }
   }
@@ -127,7 +130,6 @@ func JsonStrToStruct(jsonStr string) map[string]interface{} {
   }
   var nodes = make(map[string]interface{})
   nodes, _ = json.Map()
-  fmt.Println("Received back from client: " , nodes)
   return nodes
 }
 
@@ -135,19 +137,25 @@ func GenerateId() string {
 	return strconv.FormatInt(time.Now().UnixNano(), 10)
 }
 
-func RemoveUser(uid string){
-  flag,find := UserExist(uid)
+func (users *UserList)Remove(uid string){
+  flag,find := users.Exist(uid)
 	if flag == true{
-		newUsers := append(Users[:find],Users[find+1:]...)
-    Users = newUsers
+		(*users) = append((*users)[:find],(*users)[find+1:]...)
     PushUserCount()
 	}
 }
 
-func UserExist(uid string) (bool,int){
+func (users *UserList)ChangeConn(index int,con *websocket.Conn){
+  fmt.Println("visitor exist change connection")
+  curUser := (*users)[index]
+  curUser.con.Close()
+  (*users)[index].con = con
+}
+
+func (users *UserList)Exist(uid string) (bool,int){
   var find int
   flag := false
-  for i,v:=range Users{
+  for i,v:=range *users{
     if uid == v.uid{
       find = i
       flag = true

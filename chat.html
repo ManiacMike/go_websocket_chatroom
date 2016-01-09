@@ -19,7 +19,7 @@
 </div>
 <br>
 <div>
-<div >名称：<input type="text" id="uname" value="匿名"> <a href="javascript:void(0)" class="btn" id="name_update" >更新</a></div>
+<div >名称：<input type="text" id="uname" value="匿名"> </div>
 <br>
 内容：<textarea id="textarea_content" class="textarea"></textarea>
 <a href="javascript:void(0)" id="send" class="btn" >发送</a>
@@ -30,6 +30,9 @@
     // helper function: log message to screen
     var LINE_SEPARATOR = "#LINE_SEPARATOR#"
     var status = "offline"
+    var isFocus=true;
+    window.onblur=function(){isFocus=false;}
+    window.onfocus = function(){isFocus=true;document.title = "聊天室"}
     function log(msg)
     {
       $("#log").html($("#log").html()+msg+"<br><br>")
@@ -53,10 +56,11 @@
         return null;
     }
 
-    $("#name_update").click(function(){
+    $("#uname").change(function(){
       setCookie("uname",$("#uname").val())
       uname = $("#uname").val();
     });
+
     //setup websocket with callbacks
     var ws = new WebSocket('ws://'+window.location.host+'/');
     ws.onopen = function() {
@@ -87,6 +91,9 @@
         content = content.replace(new RegExp(LINE_SEPARATOR,"g"),"<br>")
         log("<span style='color:rgb(200,200,200)'>"+time + "</span> <span style='color:rgb(200,200,200);font-weight:bold'>" + msg.uname + "</span> <br> " + content);
        	 $('#log').scrollTop( $('#log')[0].scrollHeight );
+         if(isFocus == false){
+          document.title = "[ 新消息 ]聊天室"
+         }
       }
     };
     function sendMsg(){

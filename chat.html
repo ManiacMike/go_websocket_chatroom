@@ -58,7 +58,7 @@
       uname = $("#uname").val();
     });
     //setup websocket with callbacks
-    var ws = new WebSocket('ws://127.0.0.1:8001/');
+    var ws = new WebSocket('ws://'+window.location.host+'/');
     ws.onopen = function() {
       log("<span style='color:green'>连接成功</span>");
       status = "online"

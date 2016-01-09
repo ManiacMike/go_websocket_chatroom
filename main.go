@@ -170,7 +170,7 @@ func main() {
     http.HandleFunc("/chat", StaticServer)
 
     fmt.Println("listen on port 8001")
-    fmt.Println("浏览器访问 http://127.0.0.1:8001/chat")
+    fmt.Println("浏览器访问 http://yourhost:8001/chat")
 
     if err := http.ListenAndServe(":8001", nil); err != nil {
         log.Fatal("ListenAndServe:", err)

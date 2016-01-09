@@ -79,12 +79,12 @@
         setCookie("uid",msg.uid)
       }else if(msg.type== "user_count"){
         $("#user_count").html(msg.user_count)
-      }else{
+      }else{new RegExp("终古","g");
         var t = msg.time
         var d = new Date(t*1000);
         var time = d.getHours()+":"+(d.getMinutes()<10?("0"+d.getMinutes()):d.getMinutes())+":"+(d.getSeconds()<10?("0"+d.getSeconds()):d.getSeconds());
         var content = msg.content.toString()
-        content = content.replace(LINE_SEPARATOR,"<br>")
+        content = content.replace(new RegExp(LINE_SEPARATOR,"g"),"<br>")
         log("<span style='color:rgb(200,200,200)'>"+time + "</span> <span style='color:rgb(200,200,200);font-weight:bold'>" + msg.uname + "</span> <br> " + content);
        	 $('#log').scrollTop( $('#log')[0].scrollHeight );
       }

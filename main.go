@@ -8,8 +8,11 @@ import (
     "strconv"
     "time"
     "encoding/json"
+    "strings"
     "github.com/bitly/go-simplejson" // for json get
 )
+
+const LINE_SEPARATOR = "#LINE_SEPARATOR#"
 
 type User struct {
 	uid string
@@ -117,6 +120,7 @@ func Broadcast(replyBodyStr string) error{
 }
 
 func JsonStrToStruct(jsonStr string) map[string]interface{} {
+  jsonStr = strings.Replace(jsonStr,"\n",LINE_SEPARATOR,-1)
   json, err := simplejson.NewJson([]byte(jsonStr))
   if err != nil {
       panic(err.Error())

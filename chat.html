@@ -26,6 +26,7 @@
 <script>
   $(function(){
     // helper function: log message to screen
+    var LINE_SEPARATOR = "#LINE_SEPARATOR#"
     function log(msg)
     {
       $("#log").html($("#log").html()+msg+"<br><br>")
@@ -76,16 +77,27 @@
         var t = msg.time
         var d = new Date(t*1000);
         var time = d.getHours()+":"+(d.getMinutes()<10?("0"+d.getMinutes()):d.getMinutes())+":"+(d.getSeconds()<10?("0"+d.getSeconds()):d.getSeconds());
-        log("<span style='color:rgb(200,200,200)'>"+time + "</span> <span style='color:rgb(200,200,200);font-weight:bold'>" + msg.uname + "</span> <br> " + msg.content);
+        var content = msg.content.toString()
+        content = content.replace(LINE_SEPARATOR,"<br>")
+        log("<span style='color:rgb(200,200,200)'>"+time + "</span> <span style='color:rgb(200,200,200);font-weight:bold'>" + msg.uname + "</span> <br> " + content);
        	 $('#log').scrollTop( $('#log')[0].scrollHeight );
       }
     };
-    $("#send").click(function(){
+    function sendMsg(){
       //log(msg);
       var msg = '{"content":"'+$("#textarea_content").val()+'","uname":"'+uname+'"}'
       ws.send(msg);
       $("#textarea_content").val("");
-     	$('#log').scrollTop( $('#log')[0].scrollHeight );
+      $('#log').scrollTop( $('#log')[0].scrollHeight );
+    }
+    $("#send").click(function(){
+      sendMsg()
     });
+    document.onkeydown = function(e){
+      var ev = document.all ? window.event : e;
+      if(ev.keyCode==13) {
+          sendMsg()
+      }
+    }
   });
 </script><body></html>

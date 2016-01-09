@@ -5,21 +5,10 @@ import (
     "fmt"
     "log"
     "net/http"
-    "strconv"
     "time"
     "encoding/json"
-    "strings"
-    "github.com/bitly/go-simplejson" // for json get
 )
 
-const LINE_SEPARATOR = "#LINE_SEPARATOR#"
-
-type User struct {
-	uid string
-	con *websocket.Conn
-}
-
-type UserList []User
 var CurrentUsers *UserList //在线用户列表
 
 type MessageReply struct{
@@ -82,24 +71,6 @@ func ChatServer(ws *websocket.Conn) {
     }
 }
 
-func (users *UserList) New(ws *websocket.Conn) string{
-  uid := GenerateId()
-  (*users) = append(*users,User{uid,ws})
-  fmt.Println(*users)
-  fmt.Println("New user connect current user num",len(*users))
-  reply := UidCookieReply{Type:"session",Uid:uid}
-  replyBody, err := json.Marshal(reply)
-  if err != nil {
-      panic(err.Error())
-  }
-  replyBodyStr := string(replyBody)
-  if err := websocket.Message.Send(ws, replyBodyStr); err != nil {
-      fmt.Println("Can't send user ",uid," lost connection")
-      users.Remove(uid)
-  }
-  return uid
-}
-
 func PushUserCount(){
   userCount := UserCountChangeReply{"user_count",len(*CurrentUsers)}
   replyBody, err := json.Marshal(userCount)
@@ -122,48 +93,6 @@ func Broadcast(replyBodyStr string) error{
   return nil
 }
 
-func JsonStrToStruct(jsonStr string) map[string]interface{} {
-  jsonStr = strings.Replace(jsonStr,"\n",LINE_SEPARATOR,-1)
-  json, err := simplejson.NewJson([]byte(jsonStr))
-  if err != nil {
-      panic(err.Error())
-  }
-  var nodes = make(map[string]interface{})
-  nodes, _ = json.Map()
-  return nodes
-}
-
-func GenerateId() string {
-	return strconv.FormatInt(time.Now().UnixNano(), 10)
-}
-
-func (users *UserList)Remove(uid string){
-  flag,find := users.Exist(uid)
-	if flag == true{
-		(*users) = append((*users)[:find],(*users)[find+1:]...)
-    PushUserCount()
-	}
-}
-
-func (users *UserList)ChangeConn(index int,con *websocket.Conn){
-  fmt.Println("visitor exist change connection")
-  curUser := (*users)[index]
-  curUser.con.Close()
-  (*users)[index].con = con
-}
-
-func (users *UserList)Exist(uid string) (bool,int){
-  var find int
-  flag := false
-  for i,v:=range *users{
-    if uid == v.uid{
-      find = i
-      flag = true
-      break
-    }
-  }
-  return flag,find
-}
 
 func StaticServer(w http.ResponseWriter, req *http.Request) {
     http.ServeFile(w,req,"chat.html")

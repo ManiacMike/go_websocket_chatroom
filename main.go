@@ -48,7 +48,7 @@ func ChatServer(ws *websocket.Conn) {
 			uid = CurrentUsers.New(ws) //cookie中的uid不存在
 		}
 	}
-	PushUserCount()
+	go PushUserCount()
 
 	for {
 		var receiveMsg string
@@ -67,7 +67,7 @@ func ChatServer(ws *websocket.Conn) {
 			panic(err.Error())
 		}
 		replyBodyStr := string(replyBody)
-		Broadcast(replyBodyStr)
+		go Broadcast(replyBodyStr)
 	}
 }
 

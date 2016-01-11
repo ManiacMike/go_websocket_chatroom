@@ -35,7 +35,7 @@ func (users *UserList) Remove(uid string) {
 	flag, find := users.Exist(uid)
 	if flag == true {
 		(*users) = append((*users)[:find], (*users)[find+1:]...)
-		PushUserCount()
+		go PushUserCount()
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"golang.org/x/net/websocket"
 	"log"
+	"os"
 	"net/http"
 	"time"
 )
@@ -102,13 +103,19 @@ func StaticServer(w http.ResponseWriter, req *http.Request) {
 
 func main() {
 
-	http.Handle("/", websocket.Handler(ChatServer))
-	http.HandleFunc("/chat", StaticServer)
-
+	rejects := make(chan error, 1)
 	fmt.Println("listen on port 8001")
 	fmt.Println("浏览器访问 http://yourhost:8001/chat")
 
-	if err := http.ListenAndServe(":8001", nil); err != nil {
-		log.Fatal("ListenAndServe:", err)
+	go func() {
+		http.Handle("/", websocket.Handler(ChatServer))
+		http.HandleFunc("/chat", StaticServer)
+		rejects <- http.ListenAndServe(":8001", nil)
+	}()
+
+	select {
+	case err := <-rejects:
+		log.Fatal("server", "Can't start server: %s", err)
+		os.Exit(3)
 	}
 }

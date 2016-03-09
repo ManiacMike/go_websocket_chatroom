@@ -9,7 +9,7 @@ A websocket chatroom with golang and javascript/html
 运行$ go_websocket_chatroom
 
 
-访问http://ip:8001/chat
+访问http://ip:port/chat
 
 
 master分支使用的是用gwork框架的版本 https://github.com/ManiacMike/gwork

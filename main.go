@@ -13,7 +13,7 @@ func StaticServer(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	fmt.Println("浏览器访问 http://yourhost:8001/chat")
+	fmt.Println("浏览器访问 http://yourhost:port/chat")
 	http.HandleFunc("/chat", StaticServer)
 
 	gwork.SetGetConnCallback(func(uid string, room *gwork.Room) {

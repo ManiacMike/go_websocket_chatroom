@@ -1,5 +1,7 @@
 # go_websocket_chatroom
-A websocket chatroom with golang and javascript/html
+A websocket chatroom with golang and javascript/html，前端来自 http://rumpetroll.com/
+
+同时也是同屏游戏的简单实践，服务器使用的是基于geohash的推送方式，使用的是用gwork框架，更多的内容请访问 https://github.com/ManiacMike/gwork
 
 #安装
 
@@ -9,10 +11,4 @@ A websocket chatroom with golang and javascript/html
 运行$ go_websocket_chatroom
 
 
-访问http://ip:port/chat
-
-
-master分支使用的是用gwork框架的版本 https://github.com/ManiacMike/gwork
-
-
-ori分支是不使用框架的版本，功能要欠缺一些
+访问http://ip:port/demo/
